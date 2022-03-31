@@ -3,7 +3,7 @@ Official Implementation of the CVPR 2022 paper "UNICON: Combating Label Noise Th
 
 
 ![Teaser](./Figure/Teaser.png)
-
+![Framework](./Figure/Snip20220331_3.png)
 
 After creating a virtual environment, run 'pip install -r requirements.txt'
 
