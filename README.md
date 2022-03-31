@@ -2,7 +2,7 @@
 Official Implementation of the CVPR 2022 paper "UNICON: Combating Label Noise Through Uniform Selection and Contrastive Learning"
 
 
-![Teaser](./Figure/Teaser.png)
+<!-- ![Teaser](./Figure/Teaser.png) -->
 ![Framework](./Figure/Snip20220331_3.png)
 
 After creating a virtual environment, run 'pip install -r requirements.txt'
