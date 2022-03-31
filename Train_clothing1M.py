@@ -318,8 +318,8 @@ cudnn.benchmark = True
 optimizer1 = optim.SGD(net1.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-3)
 optimizer2 = optim.SGD(net2.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-3)
 
-scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 100, 1e-5)
-scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 100, 1e-5)
+scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 100, 5e-5)
+scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 100, 5e-5)
 
 ## Cross-Entropy and Other Losses
 CE     = nn.CrossEntropyLoss(reduction='none')
