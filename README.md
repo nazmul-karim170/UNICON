@@ -17,3 +17,4 @@ This will throw an error as downloaded files will not be in proper folder. That 
 
 For other datasets rather than CIFAR10 and CIFAR100, you need to manually download them. 
 
+ 
