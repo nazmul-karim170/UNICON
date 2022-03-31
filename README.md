@@ -16,3 +16,4 @@ Example run (CIFAR10 with 50% symmetric noise)
 This will throw an error as downloaded files will not be in proper folder. That is why they need to be manually moved to the "data_path".
 
 For other datasets rather than CIFAR10 and CIFAR100, you need to manually download them. 
+
