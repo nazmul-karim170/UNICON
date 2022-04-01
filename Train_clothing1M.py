@@ -392,8 +392,8 @@ for epoch in range(0, args.num_epochs+1):
         
         for i in range(2):
             print('\n\nTrain Net1')
-            labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob=prob2,  paths=paths2)         ## Co-divide
-            train(epoch, net1, net2, optimizer1, labeled_trainloader, unlabeled_trainloader)                        ## Train Net1
+            labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob=prob2,  paths=paths2)         ## Uniform Selction
+            train(epoch, net1, net2, optimizer1, labeled_trainloader, unlabeled_trainloader)                        ## SSL-Training
             acc1 = val(net1,val_loader,1)
 
         print('\n==== Net 1 evaluate next epoch training data loss ====') 
@@ -408,13 +408,15 @@ for epoch in range(0, args.num_epochs+1):
 
         for i in range(2):
             print('\nTrain Net2')
-            labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob=prob1, paths=paths1)           ## co-divide
-            train(epoch,net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)                             ## train net2
+            labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob=prob1, paths=paths1)           ## Uniform Selction
+            train(epoch,net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)                             ## SSL-Training
             acc2 = val(net2,val_loader,2)
 
     scheduler1.step()
     scheduler2.step()        
-    val_loader = loader.run(0, 'val')              ## Validation
+    
+    ## Test and Validate
+    val_loader = loader.run(0, 'val')              
     acc1 = val(net1,val_loader,1)
     acc2 = val(net2,val_loader,2)   
     log.write('Validation Epoch:%d  Acc1:%.2f  Acc2:%.2f\n'%(epoch,acc1,acc2))
