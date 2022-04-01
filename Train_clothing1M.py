@@ -22,7 +22,7 @@ from PreResNet_source import *
 
 parser = argparse.ArgumentParser(description='PyTorch Clothing1M Training')
 parser.add_argument('--batch_size', default=32, type=int, help='train batchsize') 
-parser.add_argument('--lr', '--learning_rate', default=0.0002, type=float, help='initial learning rate')   ## Set the learning rate to 0.005 for faster training at the beginning
+parser.add_argument('--lr', '--learning_rate', default=0.005, type=float, help='initial learning rate')   ## Set the learning rate to 0.005 for faster training at the beginning
 parser.add_argument('--alpha', default=0.5, type=float, help='parameter for Beta')
 parser.add_argument('--lambda_c', default=0.025, type=float, help='weight for contrastive loss')
 parser.add_argument('--T', default=0.5, type=float, help='sharpening temperature')
@@ -318,8 +318,8 @@ cudnn.benchmark = True
 optimizer1 = optim.SGD(net1.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-3)
 optimizer2 = optim.SGD(net2.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-3)
 
-scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 100, 5e-5)
-scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 100, 5e-5)
+scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 100, 8e-5)
+scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 100, 8e-5)
 
 ## Cross-Entropy and Other Losses
 CE     = nn.CrossEntropyLoss(reduction='none')
