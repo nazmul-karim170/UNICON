@@ -318,8 +318,8 @@ cudnn.benchmark = True
 optimizer1 = optim.SGD(net1.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-3)
 optimizer2 = optim.SGD(net2.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-3)
 
-scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 100, 8e-5)
-scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 100, 8e-5)
+scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 100, 1e-5)
+scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 100, 1e-5)
 
 ## Cross-Entropy and Other Losses
 CE     = nn.CrossEntropyLoss(reduction='none')
@@ -366,9 +366,13 @@ best_acc = [0,0]
 SR = 0
 torch.backends.cudnn.benchmark = True
 acc_meter = torchnet.meter.ClassErrorMeter(topk=[1,5], accuracy=True)
+nb_repeat = 2
 
 for epoch in range(0, args.num_epochs+1):   
     val_loader = loader.run(0, 'val')
+    
+    if epoch>100:
+        nb_repeat =3  ## Change how many times we want to repeat on the same selection
 
     if epoch<warm_up:             
         train_loader = loader.run(0,'warmup')
@@ -381,42 +385,37 @@ for epoch in range(0, args.num_epochs+1):
 
     else:
         num_samples = args.num_batches*args.batch_size
-        eval_loader = loader.run(0.5,'Calculate_JSD')  
+        eval_loader = loader.run(0.5,'eval_train')  
         prob2, paths2 = Calculate_JSD(epoch, net1, net2)                          ## Calculate the JSD distances 
         threshold   = torch.mean(prob2)                                           ## Simply Take the average as the threshold
         if threshold.item()>args.d_u:
             threshold = threshold - (threshold-torch.min(JSD))/args.tau
 
         SR = torch.sum(prob2<threshold).item()/prob2.size()[0]                    ## Calculate the Ratio of clean samples      
-        print("Maximum Sample Ratio:", SR, threshold, prob2.size()[0])
         
-        for i in range(2):
+        for i in range(nb_repeat):
             print('\n\nTrain Net1')
-            labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob=prob2,  paths=paths2)         ## Uniform Selction
-            train(epoch, net1, net2, optimizer1, labeled_trainloader, unlabeled_trainloader)                        ## SSL-Training
+            labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob=prob2,  paths=paths2)         ## Uniform Selection
+            train(epoch, net1, net2, optimizer1, labeled_trainloader, unlabeled_trainloader)                        ## Train Net1
             acc1 = val(net1,val_loader,1)
 
         print('\n==== Net 1 evaluate next epoch training data loss ====') 
-        eval_loader   = loader.run(SR,'Calculate_JSD')
+        eval_loader   = loader.run(SR,'eval_train')
         net1.load_state_dict(torch.load(os.path.join(model_save_loc, '%s_net1.pth.tar'%args.id)))
         prob1, paths1 = Calculate_JSD(epoch,net2, net1)  
         threshold     = torch.mean(prob1)
         if threshold.item()>args.d_u:
             threshold = threshold - (threshold-torch.min(JSD))/args.tau   
         SR = torch.sum(prob1<threshold).item()/prob1.size()[0]
-        print("Maximum Sample Ratio:", SR)
 
-        for i in range(2):
+        for i in range(nb_repeat):
             print('\nTrain Net2')
-            labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob=prob1, paths=paths1)           ## Uniform Selction
-            train(epoch,net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)                             ## SSL-Training
+            labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob=prob1, paths=paths1)           ## Uniform Selection
+            train(epoch,net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)                             ## Train net2
             acc2 = val(net2,val_loader,2)
 
     scheduler1.step()
     scheduler2.step()        
-    
-    ## Test and Validate
-    val_loader = loader.run(0, 'val')              
     acc1 = val(net1,val_loader,1)
     acc2 = val(net2,val_loader,2)   
     log.write('Validation Epoch:%d  Acc1:%.2f  Acc2:%.2f\n'%(epoch,acc1,acc2))

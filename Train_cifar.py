@@ -20,8 +20,8 @@ from collections.abc import MutableMapping
 
 
 ## For plotting the logs
-import wandb
-wandb.init(project="noisy-label-project", entity="ryota170")
+# import wandb
+# wandb.init(project="noisy-label-project", entity="..")
 
 ## Arguments to pass 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR Training')
@@ -32,7 +32,6 @@ parser.add_argument('--alpha', default=4, type=float, help='parameter for Beta')
 parser.add_argument('--lambda_u', default=30, type=float, help='weight for unsupervised loss')
 parser.add_argument('--lambda_c', default=0.025, type=float, help='weight for contrastive loss')
 parser.add_argument('--T', default=0.5, type=float, help='sharpening temperature')
-parser.add_argument('--p_threshold', default=0.5, type=float, help='clean probability threshold')
 parser.add_argument('--num_epochs', default=350, type=int)
 parser.add_argument('--r', default=0.5, type=float, help='noise ratio')
 parser.add_argument('--d_u',  default=0.7, type=float)
@@ -45,17 +44,6 @@ parser.add_argument('--num_class', default=10, type=int)
 parser.add_argument('--data_path', default='./data/cifar10', type=str, help='path to dataset')
 parser.add_argument('--dataset', default='cifar10', type=str)
 args = parser.parse_args()
-
-## Weigths and biases Configuration
-wandb.config = {
-  "learning_rate": args.lr,
-  "epochs": args.num_epochs,
-  "batch_size": args.batch_size,
-  "dataset": args.dataset,
-  "noise_mode": args.noise_mode,
-  "noise_rate": args.r,
-  "loss_metric": args.metric
-}
 
 ## GPU Setup 
 torch.cuda.set_device(args.gpuid)
@@ -197,10 +185,6 @@ def train(epoch, net, net2, optimizer, labeled_trainloader, unlabeled_trainloade
                 %(args.dataset, args.r, args.noise_mode, epoch, args.num_epochs, batch_idx+1, num_iter, loss_x/(batch_idx+1), loss_u/(batch_idx+1),  loss_ucl/(batch_idx+1)))
         sys.stdout.flush()
 
-    wandb.log({"Total_loss": loss.item()/(batch_idx+1),
-               "Labeled_loss": loss_x/(batch_idx+1),
-               "Unlabeled_loss": loss_u/(batch_idx+1)})
-
 
 ## For Standard Training 
 def warmup_standard(epoch,net,optimizer,dataloader):
@@ -228,7 +212,7 @@ def warmup_standard(epoch,net,optimizer,dataloader):
                 %(args.dataset, args.r, args.noise_mode, epoch, args.num_epochs, batch_idx+1, num_iter, loss.item()))
         sys.stdout.flush()
 
-## For Standard Training 
+## For Training Accuracy
 def warmup_val(epoch,net,optimizer,dataloader):
 
     net.train()
@@ -372,8 +356,8 @@ criterion  = SemiLoss()
 optimizer1 = optim.SGD(net1.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4) 
 optimizer2 = optim.SGD(net2.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
 
-scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 240, 2e-4)
-scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 240, 2e-4)
+scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 280, 2e-4)
+scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 280, 2e-4)
 
 ## Loss Functions
 CE       = nn.CrossEntropyLoss(reduction='none')
@@ -415,7 +399,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
     
     else:
         ## Calculate JSD values and Filter Rate
-        prob = Calculate_JSD(net2, net1, all_values, epoch, num_samples)           
+        prob = Calculate_JSD(net2, net1, num_samples)           
         threshold = torch.mean(prob)
         if threshold.item()>args.d_u:
             threshold = threshold - (threshold-torch.min(prob))/arg.tau
@@ -426,7 +410,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
         train(epoch,net1,net2,optimizer1,labeled_trainloader, unlabeled_trainloader)    # train net1  
 
         ## Calculate JSD values and Filter Rate
-        prob = Calculate_JSD(net2, net1, all_values, epoch, num_samples)           
+        prob = Calculate_JSD(net2, net1, num_samples)           
         threshold = torch.mean(prob)
         if threshold.item()>args.d_u:
             threshold = threshold - (threshold-torch.min(prob))/arg.tau
@@ -437,8 +421,6 @@ for epoch in range(start_epoch,args.num_epochs+1):
         train(epoch, net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)       # train net1
 
     acc = test(epoch,net1,net2)
-    warmup_val(epoch,net1,optimizer1,warmup_trainloader)
-
     scheduler1.step()
     scheduler2.step()
 
@@ -454,7 +436,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
         checkpoint1 = {
             'net': net1.state_dict(),
             'Model_number': 1,
-            'Noise_Ratio': args.ratio,
+            'Noise_Ratio': args.r,
             'Loss Function': 'CrossEntropyLoss',
             'Optimizer': 'SGD',
             'Noise_mode': args.noise_mode,
@@ -468,7 +450,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
         checkpoint2 = {
             'net': net2.state_dict(),
             'Model_number': 2,
-            'Noise_Ratio': args.ratio,
+            'Noise_Ratio': args.r,
             'Loss Function': 'CrossEntropyLoss',
             'Optimizer': 'SGD',
             'Noise_mode': args.noise_mode,

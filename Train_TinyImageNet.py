@@ -18,10 +18,10 @@ from Contrastive_loss import *
 
 parser = argparse.ArgumentParser(description='PyTorch Clothing1M Training')
 parser.add_argument('--batch_size', default=40, type=int, help='train batchsize') 
-parser.add_argument('--lr', '--learning_rate', default=0.001, type=float, help='initial learning rate')
+parser.add_argument('--lr', '--learning_rate', default=0.01, type=float, help='initial learning rate')
 parser.add_argument('--alpha', default=4, type=float, help='parameter for Beta')
 parser.add_argument('--lambda_u', default=30, type=float, help='weight for unsupervised loss')
-parser.add_argument('--p_threshold', default=0.5, type=float, help='clean probability threshold')
+parser.add_argument('--lambda_c', default=0.025, type=float, help='weight for contrastive loss')
 parser.add_argument('--T', default=0.2, type=float, help='sharpening temperature')
 parser.add_argument('--num_epochs', default=350, type=int)
 parser.add_argument('--id', default='TinyImage')
@@ -32,7 +32,7 @@ parser.add_argument('--noise_mode',  default='sym')
 parser.add_argument('--d_u',  default=0.7, type=float)
 parser.add_argument('--tau',  default=5, type=float)
 parser.add_argument('--ratio', default=0.2 , type=float, help='noise ratio')
-parser.add_argument('--resume', default=True , type=float, help='Resume from chekpoint')
+parser.add_argument('--resume', default=False , type=bool, help='Resume from chekpoint')
 parser.add_argument('--num_class', default=200, type=int)
 parser.add_argument('--num_batches', default=2000, type=int)
 parser.add_argument('--dataset', default='TinyImageNet', type=str)
@@ -141,7 +141,7 @@ def train(epoch, net, net2, optimizer, labeled_trainloader, unlabeled_trainloade
         penalty = torch.sum(prior*torch.log(prior/pred_mean))
 
         ## Total Loss
-        loss = Lx + lamb * Lu + 0.025 * loss_simCLR + penalty  
+        loss = Lx + lamb * Lu + args.lambda_c * loss_simCLR + penalty  
 
         loss_x += Lx.item()
         loss_u += Lu.item()
@@ -153,14 +153,10 @@ def train(epoch, net, net2, optimizer, labeled_trainloader, unlabeled_trainloade
         optimizer.step()
         
         sys.stdout.write('\r')
-        sys.stdout.write('%s:%.1f-%s | Epoch [%3d/%3d] Iter[%3d/%3d]\t Labeled loss: %.2f  Unlabeled loss: %.2f SupCon Loss:%.4f UnsupCon Loss:%.4f'
-                %(args.dataset, args.ratio, args.noise_mode, epoch, args.num_epochs, batch_idx+1, num_iter, loss_x/(batch_idx+1), loss_u/(batch_idx+1), loss_scl/(batch_idx+1), loss_ucl/(batch_idx+1)))
+        sys.stdout.write('%s:%.1f-%s | Epoch [%3d/%3d] Iter[%3d/%3d]\t Labeled loss: %.2f  Unlabeled loss: %.2f Contrastive Loss:%.4f'
+                %(args.dataset, args.ratio, args.noise_mode, epoch, args.num_epochs, batch_idx+1, num_iter, loss_x/(batch_idx+1), loss_u/(batch_idx+1), loss_ucl/(batch_idx+1)))
         sys.stdout.flush()
 
-    train_loss_log.write(str(loss/(batch_idx+1))+'\n')
-    train_loss_log.flush()
-    train_closs_log.write(str(loss_ucl/(batch_idx+1))+'\n')
-    train_closs_log.flush()
 
 ## Warm-Up Model
 def warmup(epoch,net,optimizer,dataloader):
@@ -232,8 +228,6 @@ def test(net1,net2,test_loader):
             correct += predicted.eq(targets).cpu().sum().item()                    
     acc = 100.*correct/total
     print("\n| Test Acc: %.2f%%\n" %(acc)) 
-    test_loss_log.write(str(loss_x/(batch_idx+1))+'\n')
-    test_loss_log.flush()
     return acc    
 
 # Calculate the kl divergence
@@ -299,11 +293,8 @@ model_save_loc = './checkpoint/' + folder
 if not os.path.exists(model_save_loc):
     os.mkdir(model_save_loc)
 
-log=open('./checkpoint/'+ folder + '/test_acc_%s.txt'%args.id,'w')     
+log=open(os.path.join(model_save_loc, 'test_acc_%s.txt'%args.id),'w')     
 log.flush()
-train_loss_log  = open('./checkpoint/' + folder + '/train_loss.txt','w')
-test_loss_log   = open('./checkpoint/' + folder + '/test_loss.txt','w')
-train_closs_log = open('./checkpoint/' + folder + '/train_closs.txt','w')
 
 warm_up = 15
 
@@ -317,7 +308,9 @@ cudnn.benchmark = True
 criterion = SemiLoss()
 optimizer1 = optim.SGD(net1.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
 optimizer2 = optim.SGD(net2.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
-                      
+scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 300, 1e-5)
+scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 300, 1e-5)
+
 CE = nn.CrossEntropyLoss(reduction='none')
 CEloss = nn.CrossEntropyLoss()
 conf_penalty = NegEntropy()
@@ -329,27 +322,29 @@ model_name_1 = 'Net1_warmup.pth'
 model_name_2 = 'Net2_warmup.pth'
 
 if args.resume:
+    start_epoch = warm_up
     net1.load_state_dict(torch.load(os.path.join(model_save_loc, model_name_1))['net'])
     net2.load_state_dict(torch.load(os.path.join(model_save_loc, model_name_2))['net'])
-
+else:
+    start_epoch = 0
 best_acc = 0
 
 ## Dummy Sample Ratio
 SR = 0
 
 ## Main Training 
-for epoch in range(warm_up,args.num_epochs+1):   
+for epoch in range(start_epoch,args.num_epochs+1):   
     num_samples = 100000
 
-    ## After 100 epochs, change the learning rate of the optimizer  
-    lr = args.lr
-    if epoch >= 100:
-        lr /= 10
+    # ## After 100 epochs, change the learning rate of the optimizer  
+    # lr = args.lr
+    # if (epoch+1)%100 == 0:
+    #     lr /= 10
 
-    for param_group in optimizer1.param_groups:
-        param_group['lr'] = lr       
-    for param_group in optimizer2.param_groups:
-        param_group['lr'] = lr   
+    # for param_group in optimizer1.param_groups:
+    #     param_group['lr'] = lr       
+    # for param_group in optimizer2.param_groups:
+    #     param_group['lr'] = lr   
 
     test_loader = loader.run(SR, 'val')
     
@@ -367,20 +362,18 @@ for epoch in range(warm_up,args.num_epochs+1):
         eval_loader = loader.run(SR,'eval_train')  
 
         ## JSD Value Calculation
-        prob = Calculate_JSD(net1, net2, all_values, epoch, num_samples)
+        prob = Calculate_JSD(net1, net2, num_samples)
         threshold = torch.mean(prob)
         if threshold.item()>args.d_u:
             threshold = threshold - (threshold-torch.min(prob))/arg.tau
-
         SR = torch.sum(prob<threshold).item()/num_samples
-        print("Maximum Sample Ratio:", SR)
         
         print('Train Net1')
         labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob= prob) # Uniform Selection
         train(epoch,net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)     # Train net1  
 
         ## JSD Value Calculation
-        prob = Calculate_JSD(net2, net1, all_values, epoch, num_samples)           
+        prob = Calculate_JSD(net2, net1, num_samples)           
         threshold = torch.mean(prob)
         if threshold.item()>args.d_u:
             threshold = threshold - (threshold-torch.min(prob))/arg.tau
@@ -390,6 +383,8 @@ for epoch in range(warm_up,args.num_epochs+1):
         labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob= prob)    # Uniform Selection
         train(epoch, net1,net2,optimizer1,labeled_trainloader, unlabeled_trainloader)       # train net1
 
+    scheduler1.step()
+    scheduler2.step()
     acc = test(net1,net2, test_loader)
     log.write(str(acc)+'\n')
     log.flush()  
