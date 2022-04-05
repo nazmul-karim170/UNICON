@@ -23,7 +23,7 @@ parser.add_argument('--alpha', default=4, type=float, help='parameter for Beta')
 parser.add_argument('--lambda_u', default=30, type=float, help='weight for unsupervised loss')
 parser.add_argument('--lambda_c', default=0.025, type=float, help='weight for contrastive loss')
 parser.add_argument('--T', default=0.2, type=float, help='sharpening temperature')
-parser.add_argument('--num_epochs', default=350, type=int)
+parser.add_argument('--num_epochs', default=400, type=int)
 parser.add_argument('--id', default='TinyImage')
 parser.add_argument('--data_path', default='./data/tiny-imagenet-200', type=str, help='path to dataset')
 parser.add_argument('--seed', default=123)
@@ -230,7 +230,7 @@ def test(net1,net2,test_loader):
     print("\n| Test Acc: %.2f%%\n" %(acc)) 
     return acc    
 
-# Calculate the kl divergence
+# Calculate the KL divergence
 def kl_divergence(p, q):
     return (p * ((p+1e-10) / (q+1e-10)).log()).sum(dim=1)
 
@@ -297,7 +297,6 @@ log=open(os.path.join(model_save_loc, 'test_acc_%s.txt'%args.id),'w')
 log.flush()
 
 warm_up = 15
-
 loader = dataloader(root=args.data_path, batch_size=args.batch_size, num_workers=4, num_batches=args.num_batches, log = log, ratio = args.ratio, noise_mode = args.noise_mode, noise_file='%s/clean_%.2f_%s.npz'%(args.data_path,args.ratio, args.noise_mode))
 
 print('| Building net')
@@ -305,6 +304,8 @@ net1 = create_model()
 net2 = create_model()
 cudnn.benchmark = True
 
+
+## Loss Functions and Optimizers 
 criterion = SemiLoss()
 optimizer1 = optim.SGD(net1.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
 optimizer2 = optim.SGD(net2.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
@@ -327,6 +328,7 @@ if args.resume:
     net2.load_state_dict(torch.load(os.path.join(model_save_loc, model_name_2))['net'])
 else:
     start_epoch = 0
+
 best_acc = 0
 
 ## Dummy Sample Ratio
@@ -336,15 +338,15 @@ SR = 0
 for epoch in range(start_epoch,args.num_epochs+1):   
     num_samples = 100000
 
-    # ## After 100 epochs, change the learning rate of the optimizer  
-    # lr = args.lr
-    # if (epoch+1)%100 == 0:
-    #     lr /= 10
+    ## After 100 epochs, change the learning rate of the optimizer  
+    lr = args.lr
+    if (epoch+1)%100 == 0:
+        lr /= 10
 
-    # for param_group in optimizer1.param_groups:
-    #     param_group['lr'] = lr       
-    # for param_group in optimizer2.param_groups:
-    #     param_group['lr'] = lr   
+    for param_group in optimizer1.param_groups:
+        param_group['lr'] = lr       
+    for param_group in optimizer2.param_groups:
+        param_group['lr'] = lr   
 
     test_loader = loader.run(SR, 'val')
     
