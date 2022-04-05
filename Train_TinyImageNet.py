@@ -296,7 +296,7 @@ if not os.path.exists(model_save_loc):
 log=open(os.path.join(model_save_loc, 'test_acc_%s.txt'%args.id),'w')     
 log.flush()
 
-warm_up = 15
+warm_up = 20
 loader = dataloader(root=args.data_path, batch_size=args.batch_size, num_workers=4, num_batches=args.num_batches, log = log, ratio = args.ratio, noise_mode = args.noise_mode, noise_file='%s/clean_%.2f_%s.npz'%(args.data_path,args.ratio, args.noise_mode))
 
 print('| Building net')
@@ -309,8 +309,7 @@ cudnn.benchmark = True
 criterion = SemiLoss()
 optimizer1 = optim.SGD(net1.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
 optimizer2 = optim.SGD(net2.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
-scheduler1 = optim.lr_scheduler.CosineAnnealingLR(optimizer1, 300, 1e-5)
-scheduler2 = optim.lr_scheduler.CosineAnnealingLR(optimizer2, 300, 1e-5)
+
 
 CE = nn.CrossEntropyLoss(reduction='none')
 CEloss = nn.CrossEntropyLoss()
@@ -385,8 +384,6 @@ for epoch in range(start_epoch,args.num_epochs+1):
         labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob= prob)    # Uniform Selection
         train(epoch, net1,net2,optimizer1,labeled_trainloader, unlabeled_trainloader)       # train net1
 
-    scheduler1.step()
-    scheduler2.step()
     acc = test(net1,net2, test_loader)
     log.write(str(acc)+'\n')
     log.flush()  
