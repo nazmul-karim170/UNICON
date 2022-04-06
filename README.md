@@ -1,6 +1,6 @@
 # UNICON-Noisy-Label
 Official Implementation of the CVPR 2022 paper "UNICON: Combating Label Noise Through Uniform Selection and Contrastive Learning"
-
+![Link to Paper][https://arxiv.org/pdf/2203.14542.pdf]
 
 <!-- ![Teaser](./Figure/Teaser.png) -->
 ![Framework](./Figure/Snip20220331_3.png)
