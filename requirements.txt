@@ -1,0 +1,9 @@
+numpy
+opencv-python
+Pillow
+tensorboardX
+torch
+torchnet
+torchvision
+tqdm
+
