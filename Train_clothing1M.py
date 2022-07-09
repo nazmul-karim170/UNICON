@@ -21,13 +21,12 @@ from PreResNet_source import *
 
 
 parser = argparse.ArgumentParser(description='PyTorch Clothing1M Training')
-parser.add_argument('--batch_size', default=32, type=int, help='train batchsize') 
+parser.add_argument('--batch_size', default=32, type=int, help='train batchsize')    
 parser.add_argument('--lr', '--learning_rate', default=0.005, type=float, help='initial learning rate')   ## Set the learning rate to 0.005 for faster training at the beginning
 parser.add_argument('--alpha', default=0.5, type=float, help='parameter for Beta')
 parser.add_argument('--lambda_c', default=0.025, type=float, help='weight for contrastive loss')
 parser.add_argument('--T', default=0.5, type=float, help='sharpening temperature')
 parser.add_argument('--d_u',  default=0.7, type=float)
-parser.add_argument('--tau',  default=5, type=float)
 parser.add_argument('--num_epochs', default=200, type=int)
 parser.add_argument('--id', default='clothing1m')
 parser.add_argument('--tau', default=5, type=float, help='filtering coefficient')
