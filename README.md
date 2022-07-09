@@ -31,12 +31,12 @@ If you have any questions, do not hesitate to contact at nazmul.karim18@knights.
 
 Also, if you find our work useful please cite: 
 
-@InProceedings{Karim_2022_CVPR,
-    author    = {Karim, Nazmul and Rizve, Mamshad Nayeem and Rahnavard, Nazanin and Mian, Ajmal and Shah, Mubarak},
-    title     = {UniCon: Combating Label Noise Through Uniform Selection and Contrastive Learning},
-    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-    month     = {June},
-    year      = {2022},
-    pages     = {9676-9686}
-}
+	@InProceedings{Karim_2022_CVPR,
+	    author    = {Karim, Nazmul and Rizve, Mamshad Nayeem and Rahnavard, Nazanin and Mian, Ajmal and Shah, Mubarak},
+	    title     = {UniCon: Combating Label Noise Through Uniform Selection and Contrastive Learning},
+	    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+	    month     = {June},
+	    year      = {2022},
+	    pages     = {9676-9686}
+	}
  
