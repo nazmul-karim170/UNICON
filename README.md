@@ -6,7 +6,10 @@ https://arxiv.org/pdf/2203.14542.pdf
 ![Framework](./Figure/Snip20220331_3.png)
 
 # Example Run
-After creating a virtual environment, run 'pip install -r requirements.txt'	
+After creating a virtual environment, run
+
+	pip install -r requirements.txt
+
 Example run (CIFAR10 with 50% symmetric noise) 
 
 	python Train_cifar.py --dataset cifar10 --num_class 10 --data_path ./data/cifar10 --noise_mode 'sym' --r 0.5 
