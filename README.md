@@ -18,11 +18,12 @@ Example run (CIFAR100 with 90% symmetric noise)
 
 	python Train_cifar.py --dataset cifar100 --num_class 100 --data_path ./data/cifar100 --noise_mode 'sym' --r 0.9 
 
+This will throw an error as downloaded files will not be in proper folder. That is why they are needed to be manually moved to the "data_path".
+
 Example run (Clothing1M)
 	
 	python Train_clothing1M.py --batch_size 32 --num_epochs 200   
 
-This will throw an error as downloaded files will not be in proper folder. That is why they are needed to be manually moved to the "data_path".
 
 
 
