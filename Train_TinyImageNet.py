@@ -18,7 +18,7 @@ from Contrastive_loss import *
 
 parser = argparse.ArgumentParser(description='PyTorch Clothing1M Training')
 parser.add_argument('--batch_size', default=40, type=int, help='train batchsize') 
-parser.add_argument('--lr', '--learning_rate', default=0.01, type=float, help='initial learning rate')
+parser.add_argument('--lr', '--learning_rate', default=0.002, type=float, help='initial learning rate')
 parser.add_argument('--alpha', default=4, type=float, help='parameter for Beta')
 parser.add_argument('--lambda_u', default=30, type=float, help='weight for unsupervised loss')
 parser.add_argument('--lambda_c', default=0.025, type=float, help='weight for contrastive loss')
@@ -296,7 +296,7 @@ if not os.path.exists(model_save_loc):
 log=open(os.path.join(model_save_loc, 'test_acc_%s.txt'%args.id),'w')     
 log.flush()
 
-warm_up = 20
+warm_up = 15
 loader = dataloader(root=args.data_path, batch_size=args.batch_size, num_workers=4, num_batches=args.num_batches, log = log, ratio = args.ratio, noise_mode = args.noise_mode, noise_file='%s/clean_%.2f_%s.npz'%(args.data_path,args.ratio, args.noise_mode))
 
 print('| Building net')
@@ -339,7 +339,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
 
     ## After 100 epochs, change the learning rate of the optimizer  
     lr = args.lr
-    if (epoch+1)%100 == 0:
+    if (epoch+1)%150 == 0:
         lr /= 10
 
     for param_group in optimizer1.param_groups:
@@ -362,7 +362,6 @@ for epoch in range(start_epoch,args.num_epochs+1):
     else:
         eval_loader = loader.run(SR,'eval_train')  
 
-        ## JSD Value Calculation
         prob = Calculate_JSD(net1, net2, num_samples)
         threshold = torch.mean(prob)
         if threshold.item()>args.d_u:
@@ -373,7 +372,6 @@ for epoch in range(start_epoch,args.num_epochs+1):
         labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob= prob) # Uniform Selection
         train(epoch,net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)     # Train net1  
 
-        ## JSD Value Calculation
         prob = Calculate_JSD(net2, net1, num_samples)           
         threshold = torch.mean(prob)
         if threshold.item()>args.d_u:
@@ -405,7 +403,6 @@ for epoch in range(start_epoch,args.num_epochs+1):
             'Optimizer': 'SGD',
             'Noise_mode': args.noise_mode,
             'Accuracy': acc,
-            'Pytorch version': '1.4.0',
             'Dataset': 'TinyImageNet',
             'Batch Size': args.batch_size,
             'epoch': epoch,
@@ -419,7 +416,6 @@ for epoch in range(start_epoch,args.num_epochs+1):
             'Optimizer': 'SGD',
             'Noise_mode': args.noise_mode,
             'Accuracy': acc,
-            'Pytorch version': '1.4.0',
             'Dataset': 'TinyImageNet',
             'Batch Size': args.batch_size,
             'epoch': epoch,
