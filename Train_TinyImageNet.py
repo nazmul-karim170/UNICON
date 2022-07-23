@@ -17,7 +17,7 @@ from PreResNet_tiny import *
 from Contrastive_loss import *
 
 parser = argparse.ArgumentParser(description='PyTorch Clothing1M Training')
-parser.add_argument('--batch_size', default=40, type=int, help='train batchsize') 
+parser.add_argument('--batch_size', default=128, type=int, help='train batchsize') 
 parser.add_argument('--lr', '--learning_rate', default=0.002, type=float, help='initial learning rate')
 parser.add_argument('--alpha', default=4, type=float, help='parameter for Beta')
 parser.add_argument('--lambda_u', default=30, type=float, help='weight for unsupervised loss')
