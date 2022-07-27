@@ -42,7 +42,7 @@ transform_strong_100_compose = transforms.Compose(
         transforms.RandomCrop(64),
         transforms.ColorJitter(brightness=0.3, contrast=0.35, saturation=0.4, hue=0.07),
         transforms.RandomHorizontalFlip(),
-        ImageNetPolicy(),
+        CIFAR10Policy(),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ]
@@ -266,7 +266,7 @@ class tiny_imagenet_dataset(Dataset):
             probability[probability<0.5] = 0
             self.probability = [1-probability[i] for i in pred_idx]
             print("%s data has a size of %d"%(self.mode, len(self.train_imgs)))
-            self.train_labels = noise_label                 ## Check this if it is right
+            self.train_labels = noise_label                 
 
         elif self.mode == "unlabeled":
             pred_idx       = np.load(save_file)['index']
@@ -388,7 +388,7 @@ class tinyImagenet_dataloader():
             warmup_dataset = tiny_imagenet_dataset(SR, self.log ,self.root,transform=self.transforms["warmup"], mode='all', ratio = self.ratio, noise_mode = self.noise_mode, noise_file=self.noise_file)
             warmup_loader = DataLoader(
                 dataset=warmup_dataset, 
-                batch_size=self.batch_size*8,
+                batch_size=self.batch_size*4,
                 shuffle=True,
                 num_workers=self.num_workers)  
             return warmup_loader
