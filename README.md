@@ -20,6 +20,11 @@ Example run (CIFAR100 with 90% symmetric noise)
 
 This will throw an error as downloaded files will not be in proper folder. That is why they are needed to be manually moved to the "data_path".
 
+Example Run (TinyImageNet with 50% sym)
+
+	python Train_TinyImageNet.py --ratio 0.5
+
+
 Example run (Clothing1M)
 	
 	python Train_clothing1M.py --batch_size 32 --num_epochs 200   
