@@ -276,11 +276,10 @@ model_save_loc = './checkpoint/' + folder
 if not os.path.exists(model_save_loc):
     os.mkdir(model_save_loc)
 
-# model_name_1 = 'Net1_warmup.pth'
-# model_name_2 = 'Net2_warmup.pth'
-best_acc = 69.08
-model_name_1 = 'Net1.pth'
-model_name_2 = 'Net2.pth'  
+model_name_1 = 'Net1_warmup.pth'
+model_name_2 = 'Net2_warmup.pth'
+best_acc = 0
+ 
 
 if args.resume:
     net1.load_state_dict(torch.load(os.path.join(model_save_loc, model_name_1))['net'])
@@ -301,7 +300,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
 
        # Manually Changing the learning rate ###
     lr=args.lr
-    if epoch >= 60:
+    if epoch >= mid_warmup:
         lr /= 10      
     for param_group in optimizer1.param_groups:
         param_group['lr'] = lr       
@@ -354,7 +353,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
             threshold = threshold - (threshold-torch.min(prob))/arg.tau
         SR = torch.sum(prob<threshold).item()/num_samples            
 
-        print('--------------------------------------')
+        print('\n --------------------------------------')
         print('\n Train Net2')
         labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob= prob)    # Uniform Selection
         train(epoch, net1,net2,optimizer1,labeled_trainloader, unlabeled_trainloader)       # train net1
@@ -404,7 +403,6 @@ for epoch in range(start_epoch,args.num_epochs+1):
         torch.save(checkpoint2, os.path.join(model_save_loc, model_name_2))
         best_acc = web_acc[0]
 
-    # torch.save(all_loss,'./checkpoint/%s.pth.tar'%(args.id))    
 
  
 

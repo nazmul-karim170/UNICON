@@ -343,10 +343,9 @@ class tiny_imagenet_dataset(Dataset):
             return len(self.train_imgs)
 
 class tinyImagenet_dataloader():  
-    def __init__(self, root, batch_size, num_batches, num_workers, log, ratio,  noise_mode, noise_file):    
+    def __init__(self, root, batch_size, num_workers, log, ratio,  noise_mode, noise_file):    
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.num_batches = num_batches
         self.root = root
         self.ratio = ratio
         self.noise_mode = noise_mode
@@ -435,4 +434,3 @@ class tinyImagenet_dataloader():
                 shuffle=False,
                 num_workers=self.num_workers)             
             return val_loader             
-## Save to a file and Create noisy file, both symmetric and asymmetric and instance  

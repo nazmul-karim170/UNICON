@@ -20,10 +20,10 @@ parser = argparse.ArgumentParser(description='PyTorch Clothing1M Training')
 parser.add_argument('--batch_size', default=64, type=int, help='train batchsize') 
 parser.add_argument('--lr', '--learning_rate', default=0.005, type=float, help='initial learning rate')
 parser.add_argument('--alpha', default=0.5, type=float, help='parameter for Beta')
-parser.add_argument('--lambda_u', default=45, type=float, help='weight for unsupervised loss')
+parser.add_argument('--lambda_u', default=50, type=float, help='weight for unsupervised loss')
 parser.add_argument('--lambda_c', default=0.025, type=float, help='weight for contrastive loss')
 parser.add_argument('--T', default=0.5, type=float, help='sharpening temperature')
-parser.add_argument('--num_epochs', default=400, type=int)
+parser.add_argument('--num_epochs', default=500, type=int)
 parser.add_argument('--id', default='TinyImage')
 parser.add_argument('--data_path', default='./data/tiny-imagenet-200', type=str, help='path to dataset')
 parser.add_argument('--seed', default=123)
@@ -296,7 +296,7 @@ log=open(os.path.join(model_save_loc, 'test_acc_%s.txt'%args.id),'w')
 log.flush()
 
 warm_up = 15
-loader = dataloader(root=args.data_path, batch_size=args.batch_size, num_workers=4, num_batches=args.num_batches, log = log, ratio = args.ratio, noise_mode = args.noise_mode, noise_file='%s/clean_%.2f_%s.npz'%(args.data_path,args.ratio, args.noise_mode))
+loader = dataloader(root=args.data_path, batch_size=args.batch_size, num_workers=4, log = log, ratio = args.ratio, noise_mode = args.noise_mode, noise_file='%s/clean_%.2f_%s.npz'%(args.data_path,args.ratio, args.noise_mode))
 
 print('| Building net')
 net1 = create_model()
@@ -316,7 +316,7 @@ conf_penalty = NegEntropy()
 contrastive_criterion = SupConLoss()
 
 
-## Resume From Warmup Checkpoint
+        ## Resume From Warmup Checkpoint ##
 model_name_1 = 'Net1_warmup.pth'
 model_name_2 = 'Net2_warmup.pth'
 
@@ -338,7 +338,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
 
     ## After 100 epochs, change the learning rate of the optimizer  
     lr = args.lr
-    if (epoch+1)%150 == 0:
+    if (epoch+1)%200 == 0:
         lr /= 10
 
     for param_group in optimizer1.param_groups:
@@ -347,7 +347,10 @@ for epoch in range(start_epoch,args.num_epochs+1):
         param_group['lr'] = lr   
 
     test_loader = loader.run(SR, 'val')
-    
+    acc = test(net1,net2, test_loader)
+    log.write(str(acc)+'\n')
+    log.flush()  
+
     ## Warmup Stage 
     if epoch<warm_up:       
         warmup_trainloader = loader.run(SR, 'warmup')
@@ -363,13 +366,14 @@ for epoch in range(start_epoch,args.num_epochs+1):
 
         prob = Calculate_JSD(net1, net2, num_samples)
         threshold = torch.mean(prob)
+        print("Threshold:", threshold)
         if threshold.item()>args.d_u:
             threshold = threshold - (threshold-torch.min(prob))/arg.tau
         SR = torch.sum(prob<threshold).item()/num_samples
         
         print('Train Net1')
-        labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob= prob) # Uniform Selection
-        train(epoch,net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)     # Train net1  
+        labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob= prob)        # Uniform Selection
+        train(epoch,net2,net1,optimizer2,labeled_trainloader, unlabeled_trainloader)            # Train net1  
 
         prob = Calculate_JSD(net2, net1, num_samples)           
         threshold = torch.mean(prob)
@@ -377,7 +381,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
             threshold = threshold - (threshold-torch.min(prob))/arg.tau
         SR = torch.sum(prob<threshold).item()/num_samples            
 
-        print('Train Net2')
+        print('\n Train Net2')
         labeled_trainloader, unlabeled_trainloader = loader.run(SR, 'train', prob= prob)    # Uniform Selection
         train(epoch, net1,net2,optimizer1,labeled_trainloader, unlabeled_trainloader)       # train net1
 
