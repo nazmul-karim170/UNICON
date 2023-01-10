@@ -29,7 +29,9 @@ Example run (Clothing1M)
 	
 	python Train_clothing1M.py --batch_size 32 --num_epochs 200   
 
-
+Example run (Webvision)
+	
+	python Train_webvision.py 
 
 
 # Dataset
