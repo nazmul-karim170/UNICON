@@ -300,7 +300,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
 
        # Manually Changing the learning rate ###
     lr=args.lr
-    if epoch >= mid_warmup:
+    if epoch >= 60:
         lr /= 10      
     for param_group in optimizer1.param_groups:
         param_group['lr'] = lr       
