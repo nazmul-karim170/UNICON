@@ -251,7 +251,7 @@ stats_log=open('./checkpoint/%s'%(args.id)+'_stats.txt','w')
 test_log=open('./checkpoint/%s'%(args.id)+'_acc.txt','w')     
 
 warm_up = 2  
-mid_warmup = 40
+mid_warmup = 25
 loader = dataloader.webvision_dataloader(batch_size=args.batch_size,num_workers=5,root_dir=args.data_path,log=stats_log, num_class=args.num_class)
 
 print('| Building net')
