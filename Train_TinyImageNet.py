@@ -338,7 +338,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
 
     ## After 100 epochs, change the learning rate of the optimizer  
     lr = args.lr
-    if (epoch+1)%200 == 0:
+    if (epoch+1)%250 == 0:
         lr /= 10
 
     for param_group in optimizer1.param_groups:
