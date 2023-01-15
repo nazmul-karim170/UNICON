@@ -295,7 +295,7 @@ if not os.path.exists(model_save_loc):
 log=open(os.path.join(model_save_loc, 'test_acc_%s.txt'%args.id),'w')     
 log.flush()
 
-warm_up = 15
+warm_up = 10
 loader = dataloader(root=args.data_path, batch_size=args.batch_size, num_workers=4, log = log, ratio = args.ratio, noise_mode = args.noise_mode, noise_file='%s/clean_%.2f_%s.npz'%(args.data_path,args.ratio, args.noise_mode))
 
 print('| Building net')
