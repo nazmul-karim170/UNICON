@@ -442,7 +442,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
             'Noise_mode': args.noise_mode,
             'Accuracy': acc,
             'Pytorch version': '1.4.0',
-            'Dataset': 'TinyImageNet',
+            'Dataset': 'CIFAR10',
             'Batch Size': args.batch_size,
             'epoch': epoch,
         }
@@ -456,7 +456,7 @@ for epoch in range(start_epoch,args.num_epochs+1):
             'Noise_mode': args.noise_mode,
             'Accuracy': acc,
             'Pytorch version': '1.4.0',
-            'Dataset': 'TinyImageNet',
+            'Dataset': 'CIFAR10',
             'Batch Size': args.batch_size,
             'epoch': epoch,
         }
