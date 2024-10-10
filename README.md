@@ -13,7 +13,7 @@ Learning</a></h2>
 ## [Paper](https://openaccess.thecvf.com/content/CVPR2022/papers/Karim_UniCon_Combating_Label_Noise_Through_Uniform_Selection_and_Contrastive_Learning_CVPR_2022_paper.pdf) 
 
 
-## Code for Training 
+## Training Pipeline
 
 
 ### UNICON Framework
