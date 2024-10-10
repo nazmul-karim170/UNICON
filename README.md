@@ -21,37 +21,65 @@ Learning</a></h2>
 <!-- ![Teaser](./Figure/Teaser.png) -->
 ![Framework](./Figure/Snip20220331_3.png)
 
-### Example Run
-After creating a virtual environment, run
+### Installation Guide
 
+1. Create a conda environment
+
+	```bash
+	conda create -n unicon 
+	conda activate unicon
+ 	```
+
+2. After creating a virtual environment, install the required packages 
+	
+ 	```bash
 	pip install -r requirements.txt
+	```
+  
+### Download the Datasets
 
-Example run (CIFAR10 with 50% symmetric noise) 
+* For adding Synthetic Noise, download these datasets
+	1. <a href="https://www.kaggle.com/c/cifar-10/data">CIFAR10</a>
+ 	2. <a href="https://www.kaggle.com/datasets/melikechan/cifar100">CIFAR100</a>
+  	3. <a href="https://www.kaggle.com/datasets/nikhilshingadiya/tinyimagenet200">Tiny-ImageNet</a>
 
+* For Datasets with Real-World Label Noise
+  	1. <a href="https://github.com/Cysu/noisy_label">Cloting1M</a> (Please contact tong.xiao.work[at]gmail[dot]com to get the download link)
+  	2. <a href="https://data.vision.ee.ethz.ch/cvl/webvision/dataset2017.html">WebVision</a>
+  
+### UNICON Training
+
+* Example run (CIFAR10 with 50% symmetric noise) 
+
+	```bash
 	python Train_cifar.py --dataset cifar10 --num_class 10 --data_path ./data/cifar10 --noise_mode 'sym' --r 0.5 
+	```
+ 
+* Example run (CIFAR100 with 90% symmetric noise) 
 
-Example run (CIFAR100 with 90% symmetric noise) 
-
+	```bash
 	python Train_cifar.py --dataset cifar100 --num_class 100 --data_path ./data/cifar100 --noise_mode 'sym' --r 0.9 
-
+	```
+ 
 This will throw an error as downloaded files will not be in the proper folder. That is why they must be manually moved to the "data_path".
 
-Example Run (TinyImageNet with 50% symmetric noise)
+* Example Run (TinyImageNet with 50% symmetric noise)
 
+	```bash
 	python Train_TinyImageNet.py --ratio 0.5
+	```
 
+* Example run (Clothing1M)
 
-Example run (Clothing1M)
-	
+   	```bash
 	python Train_clothing1M.py --batch_size 32 --num_epochs 200   
+	```
 
-Example run (Webvision)
-	
+* Example run (Webvision)
+   
+	```bash
 	python Train_webvision.py 
-
-
-### Dataset
-For datasets other than CIFAR10 and CIFAR100, you need to download them from their corresponding website.
+	```
 
 ### Reference 
 If you have any questions, do not hesitate to contact nazmul.karim170@gmail.com
