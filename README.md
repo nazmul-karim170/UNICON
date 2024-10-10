@@ -44,7 +44,7 @@ Learning</a></h2>
   	3. <a href="https://www.kaggle.com/datasets/nikhilshingadiya/tinyimagenet200">Tiny-ImageNet</a>
 
 * For Datasets with Real-World Label Noise
-  	1. <a href="https://github.com/Cysu/noisy_label">Cloting1M</a> (Please contact tong.xiao.work[at]gmail[dot]com to get the download link)
+  	1. <a href="https://github.com/Cysu/noisy_label">Clothing1M</a> (Please contact tong.xiao.work[at]gmail[dot]com to get the download link)
   	2. <a href="https://data.vision.ee.ethz.ch/cvl/webvision/dataset2017.html">WebVision</a>
   
 ### UNICON Training
